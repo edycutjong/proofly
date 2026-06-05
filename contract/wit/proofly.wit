@@ -1,0 +1,38 @@
+package t3n:proofly;
+
+interface host {
+    kv-get: func(namespace: string, key: string) -> result<string, string>;
+    kv-set: func(namespace: string, key: string, value: string) -> result<string, string>;
+
+    // user-profile host interface to get user's sealed credentials
+    get-profile: func(user-did: string) -> result<string, string>;
+    
+    // signing host interface for SD-JWT selective disclosure
+    issue-sd-jwt: func(claims-json: string, disclosure-keys-json: string) -> result<string, string>;
+
+    // vp host interface to package the SD-JWT into an OID4VP Verifiable Presentation
+    build-vp: func(sd-jwt: string, presentation-definition-json: string) -> result<string, string>;
+    
+    // did-registry / agent-registry
+    register-did: func(did: string, authenticator: string) -> result<string, string>;
+    publish-agent: func(did: string, agent-uri: string) -> result<string, string>;
+}
+
+world proofly {
+    import host;
+
+    record contract-input {
+        function-name: string,
+        input-json: string,
+    }
+
+    record contract-output {
+        output-json: string,
+    }
+
+    variant contract-error {
+        err(string)
+    }
+
+    export dispatch: func(input: contract-input) -> result<contract-output, contract-error>;
+}

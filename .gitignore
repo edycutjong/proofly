@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+/board/node_modules/
+
+# Next.js Build
+/board/.next/
+/board/out/
+
+# Rust Build
+/contract/target/
+Cargo.lock
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Local env files
+.env
+.env*.local
