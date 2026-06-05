@@ -13,8 +13,33 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Proofly — Prove it, don't reveal it.",
-  description: "Zero-Knowledge privacy verification agent built on Terminal 3's hardware-secured TEEs",
+  title: "Proofly — TEE-Secured Privacy Verification Agent",
+  description: "Prove attributes without revealing PII using selectively disclosed credentials inside attested hardware enclaves.",
+  icons: {
+    icon: "/icon.svg",
+  },
+  openGraph: {
+    title: "Proofly — TEE-Secured Privacy Verification Agent",
+    description: "Prove attributes without revealing PII using selectively disclosed credentials inside attested hardware enclaves.",
+    url: "https://proofly.vercel.app",
+    siteName: "Proofly",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Proofly Privacy Verification Agent",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Proofly — TEE-Secured Privacy Verification Agent",
+    description: "Prove attributes without revealing PII using selectively disclosed credentials inside attested hardware enclaves.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({
@@ -25,9 +50,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased overflow-x-hidden`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col w-full max-w-full overflow-x-hidden">{children}</body>
     </html>
   );
 }

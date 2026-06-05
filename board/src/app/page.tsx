@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Policy, ClaimReq, Presentation, AuditEntry } from "@/sdk/T3nClient";
 import { verifyProoflyPresentation } from "@/sdk/proofly-verify";
 
@@ -65,7 +65,7 @@ const INITIAL_PERSONAS: Persona[] = [
 ];
 
 export default function Home() {
-  const [personas, setPersonas] = useState<Persona[]>(INITIAL_PERSONAS);
+  const [personas] = useState<Persona[]>(INITIAL_PERSONAS);
   const [selectedPersona, setSelectedPersona] = useState<Persona>(INITIAL_PERSONAS[0]);
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [selectedPolicyId, setSelectedPolicyId] = useState<string>("");
@@ -85,17 +85,7 @@ export default function Home() {
   // Audits state
   const [audits, setAudits] = useState<AuditEntry[]>([]);
 
-  // Seed store on mount
-  useEffect(() => {
-    async function init() {
-      await fetch("/api/seed", { method: "POST" });
-      await fetchPolicies();
-      await fetchAudits();
-    }
-    init();
-  }, []);
-
-  const fetchPolicies = async () => {
+  const fetchPolicies = useCallback(async () => {
     try {
       const res = await fetch("/api/policies");
       const data = await res.json();
@@ -106,9 +96,9 @@ export default function Home() {
     } catch (err) {
       console.error("Error fetching policies:", err);
     }
-  };
+  }, [selectedPolicyId]);
 
-  const fetchAudits = async () => {
+  const fetchAudits = useCallback(async () => {
     try {
       const res = await fetch("/api/audit");
       const data = await res.json();
@@ -116,7 +106,17 @@ export default function Home() {
     } catch (err) {
       console.error("Error fetching audits:", err);
     }
-  };
+  }, []);
+
+  // Seed store on mount
+  useEffect(() => {
+    async function init() {
+      await fetch("/api/seed", { method: "POST" });
+      await fetchPolicies();
+      await fetchAudits();
+    }
+    init();
+  }, [fetchPolicies, fetchAudits]);
 
   const handleCreateCustomPolicy = async () => {
     try {
@@ -195,9 +195,9 @@ export default function Home() {
     setCustomRules(customRules.filter((_, i) => i !== index));
   };
 
-  const handleRuleChange = (index: number, key: keyof ClaimReq, val: any) => {
+  const handleRuleChange = (index: number, key: keyof ClaimReq, val: string | number | string[] | boolean | undefined) => {
     const updated = [...customRules];
-    updated[index] = { ...updated[index], [key]: val };
+    updated[index] = { ...updated[index], [key]: val } as ClaimReq;
     setCustomRules(updated);
   };
 
@@ -378,7 +378,7 @@ export default function Home() {
                     <input
                       type="text"
                       placeholder="value"
-                      value={rule.value || ""}
+                      value={(rule.value as string | number | undefined) ?? ""}
                       onChange={(e) => handleRuleChange(idx, "value", e.target.value)}
                       className="bg-slate-950 border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 text-xs text-[var(--text-hi)] font-mono w-24 focus:outline-none"
                     />
@@ -503,9 +503,9 @@ export default function Home() {
                       }, null, 2)}
                     </div>
 
-                    <div className="text-[10px] text-slate-500 text-center flex items-center justify-center gap-1">
-                      <span>🔒 Enclave is cryptographically barred from copying or exporting raw credentials.</span>
-                    </div>
+                    <p className="text-[10px] text-slate-500 text-center leading-normal">
+                      🔒 Enclave is cryptographically barred from copying or exporting raw credentials.
+                    </p>
                   </div>
                 )}
               </div>
@@ -546,7 +546,7 @@ export default function Home() {
                               </div>
                               {!presentation.disclosed.result && (
                                 <div className="text-[10px] text-rose-300/80 font-mono mt-0.5">
-                                  {presentation.disclosed.reason}
+                                  {presentation.disclosed.reason as string}
                                 </div>
                               )}
                             </div>
@@ -555,13 +555,13 @@ export default function Home() {
                         </div>
 
                         {/* Verifier SDK Check Badge */}
-                        <div className={`px-3 py-1.5 rounded-lg border text-[11px] font-mono flex items-center justify-between ${
+                        <div className={`px-3 py-1.5 rounded-lg border text-[11px] font-mono flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 ${
                           verifyResult.verified
                             ? "bg-indigo-950/40 border-indigo-700/50 text-indigo-300 animate-pulse"
                             : "bg-rose-950/40 border-rose-700/50 text-rose-300"
                         }`}>
                           <span>Verifier SDK Status:</span>
-                          <span className="font-bold">
+                          <span className="font-bold break-all sm:text-right">
                             {verifyResult.verified ? "🛡️ VERIFIED (SD-JWT SIGNATURE VALID)" : `❌ FAILURE: ${verifyResult.error}`}
                           </span>
                         </div>

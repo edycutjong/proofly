@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { T3nClient, createEthAuthInput } from "./T3nClient";
+import { T3nClient, createEthAuthInput, Policy, Presentation } from "./T3nClient";
 import { verifyProoflyPresentation } from "./proofly-verify";
 
 describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
@@ -83,7 +83,7 @@ describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
       for (const key of keys) {
         for (const gKey of Object.keys(global)) {
           expect(gKey).not.toContain(key);
-          const val = (global as any)[gKey];
+          const val = (global as Record<string, unknown>)[gKey];
           if (typeof val === "string") {
             expect(val).not.toContain(key);
           }
@@ -118,7 +118,7 @@ describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
     });
 
     it("Successfully registers a new custom policy in TEE store", async () => {
-      const policy = await client.executeAndDecode({
+      const policy = (await client.executeAndDecode({
         script_name: "z:tenant:proofly",
         script_version: "1.0.0",
         function_name: "create-policy",
@@ -126,7 +126,7 @@ describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
           id: "custom-age-gate-21",
           require: [{ claim: "age", op: ">=", value: 21 }],
         },
-      });
+      })) as Policy;
 
       expect(policy.id).toBe("custom-age-gate-21");
       expect(policy.require[0].claim).toBe("age");
@@ -176,7 +176,7 @@ describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
     });
 
     it("Approves Maya under adult-eu-nosanction and returns zero PII", async () => {
-      const response = await client.executeAndDecode({
+      const response = (await client.executeAndDecode({
         script_name: "z:tenant:proofly",
         script_version: "1.0.0",
         function_name: "verify-policy",
@@ -185,7 +185,7 @@ describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
           policyId: "adult-eu-nosanction",
           verifierDid
         }
-      });
+      })) as Presentation;
 
       // Zero-PII Guarantee: result is true, no birth date, no country, no name
       expect(response.disclosed.result).toBe(true);
@@ -198,7 +198,7 @@ describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
     });
 
     it("Rejects Dmitri due to sanctions status", async () => {
-      const response = await client.executeAndDecode({
+      const response = (await client.executeAndDecode({
         script_name: "z:tenant:proofly",
         script_version: "1.0.0",
         function_name: "verify-policy",
@@ -207,7 +207,7 @@ describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
           policyId: "adult-eu-nosanction",
           verifierDid
         }
-      });
+      })) as Presentation;
 
       expect(response.disclosed.result).toBe(false);
       expect(response.disclosed.reason).toContain("sanctioned");
@@ -215,7 +215,7 @@ describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
     });
 
     it("Rejects Leo due to age restriction", async () => {
-      const response = await client.executeAndDecode({
+      const response = (await client.executeAndDecode({
         script_name: "z:tenant:proofly",
         script_version: "1.0.0",
         function_name: "verify-policy",
@@ -224,14 +224,14 @@ describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
           policyId: "adult-eu-nosanction",
           verifierDid
         }
-      });
+      })) as Presentation;
 
       expect(response.disclosed.result).toBe(false);
       expect(response.disclosed.reason).toContain("age");
     });
 
     it("Rejects Maya under accredited-us policy (non-US, non-accredited)", async () => {
-      const response = await client.executeAndDecode({
+      const response = (await client.executeAndDecode({
         script_name: "z:tenant:proofly",
         script_version: "1.0.0",
         function_name: "verify-policy",
@@ -240,7 +240,7 @@ describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
           policyId: "accredited-us",
           verifierDid
         }
-      });
+      })) as Presentation;
 
       expect(response.disclosed.result).toBe(false);
       expect(response.disclosed.reason).toContain("country");
@@ -366,7 +366,7 @@ describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
     });
 
     it("Successfully verifies a valid Verifiable Presentation envelope and claims", async () => {
-      const presentation = await client.executeAndDecode({
+      const presentation = (await client.executeAndDecode({
         script_name: "z:tenant:proofly",
         script_version: "1.0.0",
         function_name: "verify-policy",
@@ -375,7 +375,7 @@ describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
           policyId: "adult-eu-nosanction",
           verifierDid
         }
-      });
+      })) as Presentation;
 
       const policy = T3nClient.getPolicy("adult-eu-nosanction")!;
       const result = verifyProoflyPresentation(presentation.vp, policy);

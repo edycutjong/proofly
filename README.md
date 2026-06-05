@@ -15,6 +15,7 @@
   ![Rust](https://img.shields.io/badge/Rust_WASM-DEA584?style=flat&logo=rust&logoColor=white)
   ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
   ![Tailwind](https://img.shields.io/badge/Tailwind_v4-38B2AC?style=flat&logo=tailwindcss&logoColor=white)
+  [![CI/CD Pipeline](https://github.com/edycutjong/dorahacks-t3adk-proofly/actions/workflows/ci.yml/badge.svg)](https://github.com/edycutjong/dorahacks-t3adk-proofly/actions/workflows/ci.yml)
 </div>
 
 ---
@@ -22,7 +23,7 @@
 ## 🎬 See it in Action
 
 <div align="center">
-  <img src="board/public/og-image.png" alt="Proofly Board UI" width="100%">
+  <img src="docs/readme.png" alt="Proofly Board UI" width="100%">
 </div>
 
 > **The Flow:** Verifier requests a compliance proof (e.g. `over_18 ∧ country ∈ EU ∧ not_sanctioned`) ➔ Proofly loads user's sealed SD-JWT credentials inside the TEE ➔ evaluates policy criteria on plaintext inside isolated memory ➔ issues an SD-JWT selectively disclosing only the boolean result ➔ packages the credential into an OID4VP Verifiable Presentation (`vp`).
@@ -125,14 +126,35 @@ We use **six** distinct Terminal 3 host capability interfaces:
 
 ---
 
-## 🧪 Testing & Verification
+## 🧪 Engineering Harness & CI/CD
 
-We enforce a rigorous test harness verifying the entire selective disclosure state machine with **120+ assertions**.
+We enforce a production-grade 6-stage engineering harness (Quality ➔ Security ➔ Build ➔ E2E ➔ Perf ➔ Deploy Gate) running on every commit.
+
+### Engineering Harness Summary
+
+| Layer | Tool | Status | Details |
+|---|---|---|---|
+| **Code Quality** | ESLint + TypeScript strict check | ✅ Passing | Zero warnings/errors across whole monorepo |
+| **Unit Testing** | Vitest with Coverage | ✅ Passing | 18+ tests with mock TEE simulation coverage |
+| **E2E Testing** | Playwright (Desktop & Mobile) | ✅ Passing | 3 test suites, 12 assertions passing on every commit |
+| **Security (SAST)** | GitHub CodeQL | ✅ Active | Continuous static application security scanning |
+| **Security (SCA)** | Dependabot + `npm audit` | ✅ Active | Inline dependency audits on build, weekly security PRs |
+| **Secret Scanning** | TruffleHog | ✅ Active | Inline git history scanning to prevent credential leaks |
+| **Performance** | Lighthouse CI | ✅ Active | Accessibility (>=90%), Performance, Best Practices, and SEO gates |
+| **CI/CD Pipeline** | GitHub Actions | ✅ Active | Parallelized multi-stage orchestrator with concurrency controls |
+
+### Harness Command Reference
 
 ```bash
-# Run unit tests
-cd board
-npm run test
+# ── Code Quality & Unit Tests ───────────────
+npm run ci            # Full lint + typecheck + unit coverage (in board/)
+npm run lint          # Run ESLint check
+npm run typecheck     # Compile-check TypeScript types
+
+# ── E2E & Performance Tests ──────────────────
+npm run e2e           # Run Playwright E2E suites (demo mode)
+npm run e2e:ui        # Playwright interactive runner
+npm run lighthouse    # Lighthouse CI audit local build
 ```
 
 | Suite | Focus | Status |

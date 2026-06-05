@@ -11,7 +11,7 @@ export async function getT3nClient(): Promise<T3nClient> {
     baseUrl: "https://api.terminal3.io",
     wasmComponent,
     headers: {
-      "Authorization": "Bearer 0xREDACTED_TESTNET_KEY"
+      "Authorization": `Bearer ${process.env.NEXT_PUBLIC_T3N_BEARER_TOKEN || "0xREDACTED_TESTNET_KEY"}`
     }
   });
 

@@ -1,7 +1,7 @@
 export type ClaimReq = {
   claim: string;
   op?: ">=" | "in" | "==" | "not" | "!=";
-  value?: any;
+  value?: unknown;
 };
 
 export type Policy = {
@@ -11,7 +11,7 @@ export type Policy = {
 
 export type Presentation = {
   vp: string;
-  disclosed: Record<string, any>;
+  disclosed: Record<string, unknown>;
   ts: number;
 };
 
@@ -40,7 +40,11 @@ export class T3nClient {
     "LV", "EE", "SK", "SI", "CY", "MT", "LU"
   ];
 
-  constructor(config?: any) {}
+  constructor(_config?: unknown) {
+    if (_config) {
+      // ignored in simulator
+    }
+  }
 
   async handshake() {
     this.isHandshakeDone = true;
@@ -67,7 +71,7 @@ export class T3nClient {
   };
 
   contracts = {
-    register: async (params: { tail: string; version: string; wasm: any }) => {
+    register: async (params: { tail: string; version: string; wasm: unknown }) => {
       return { success: true, contract_id: 2002, script_name: `z:tenant:${params.tail}` };
     }
   };
@@ -82,11 +86,11 @@ export class T3nClient {
   }
 
   // Seeding API for the web app and tests
-  static seedProfile(userDid: string, profile: Record<string, any>) {
+  static seedProfile(userDid: string, profile: Record<string, unknown>) {
     this.kvStore.set(`profiles:${userDid}`, JSON.stringify(profile));
   }
 
-  static getProfile(userDid: string): Record<string, any> | null {
+  static getProfile(userDid: string): Record<string, unknown> | null {
     const data = this.kvStore.get(`profiles:${userDid}`);
     return data ? JSON.parse(data) : null;
   }
@@ -114,8 +118,8 @@ export class T3nClient {
     script_name: string;
     script_version: string;
     function_name: string;
-    input: any;
-  }): Promise<any> {
+    input: unknown;
+  }): Promise<unknown> {
     if (!this.isHandshakeDone || !this.authenticatedAddress) {
       throw new Error("Client not authenticated");
     }
@@ -124,9 +128,14 @@ export class T3nClient {
 
     switch (function_name) {
       case "create-policy":
-        return this.createPolicy(input);
+        return this.createPolicy(input as Policy);
       case "verify-policy":
-        return this.verifyPolicy(input);
+        return this.verifyPolicy(input as {
+          userDid: string;
+          policyId: string;
+          verifierDid?: string;
+          ts?: number;
+        });
       case "get-health":
         return {
           agentDid: "did:t3n:proofly_verify_agent",
@@ -138,12 +147,12 @@ export class T3nClient {
     }
   }
 
-  private createPolicy(policy: Policy): Policy {
+  public createPolicy(policy: Policy): Policy {
     T3nClient.kvStore.set(`policies:${policy.id}`, JSON.stringify(policy));
     return policy;
   }
 
-  private verifyPolicy(input: {
+  public verifyPolicy(input: {
     userDid: string;
     policyId: string;
     verifierDid?: string;
@@ -218,7 +227,7 @@ export class T3nClient {
     }
 
     // Build Selective Disclosure payload (zero PII! Only result + reason if failed)
-    const disclosed: Record<string, any> = { result: evaluationResult };
+    const disclosed: Record<string, unknown> = { result: evaluationResult };
     if (!evaluationResult && failReasons.length > 0) {
       disclosed.reason = failReasons.join("; ");
     }

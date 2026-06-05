@@ -16,13 +16,14 @@ export async function GET(req: Request) {
         const audits = await agentRes.json();
         return NextResponse.json(audits);
       }
-    } catch (e) {
+    } catch {
       // Fallback
     }
 
     const audits = T3nClient.getAudits(verifier);
     return NextResponse.json(audits);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

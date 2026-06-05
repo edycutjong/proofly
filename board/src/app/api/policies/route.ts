@@ -20,7 +20,7 @@ export async function POST(req: Request) {
         const created = await agentRes.json();
         return NextResponse.json(created);
       }
-    } catch (e) {
+    } catch {
       // Fallback
     }
 
@@ -36,8 +36,9 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(created);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to create policy" }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to create policy";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -50,7 +51,7 @@ export async function GET() {
         const policies = await agentRes.json();
         return NextResponse.json(policies);
       }
-    } catch (e) {
+    } catch {
       // Fallback
     }
 
@@ -61,7 +62,8 @@ export async function GET() {
     ].filter(Boolean);
 
     return NextResponse.json(policies);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

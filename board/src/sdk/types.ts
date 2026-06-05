@@ -1,7 +1,7 @@
 export type ClaimReq = {
   claim: string;
   op?: ">=" | "in" | "==" | "not" | "!=";
-  value?: any;
+  value?: unknown;
 };
 
 export type Policy = {
@@ -11,7 +11,7 @@ export type Policy = {
 
 export type Presentation = {
   vp: string;
-  disclosed: Record<string, any>;
+  disclosed: Record<string, unknown>;
   ts: number;
 };
 

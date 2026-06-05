@@ -20,7 +20,7 @@ export async function POST(req: Request) {
         const presentation = await agentRes.json();
         return NextResponse.json(presentation);
       }
-    } catch (e) {
+    } catch {
       // Live agent is offline, fallback to in-memory TEE simulator
     }
 
@@ -41,7 +41,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(presentation);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Verification failed" }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Verification failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

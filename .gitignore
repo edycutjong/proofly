@@ -24,3 +24,12 @@ Thumbs.db
 .env
 .env*.local
 !.env.example
+
+# Playwright E2E
+/board/test-results/
+/board/playwright-report/
+/board/blob-report/
+/board/playwright/.cache/
+
+# Lighthouse CI
+/board/.lighthouseci/
