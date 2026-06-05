@@ -9,6 +9,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "policy id and require rules are required" }, { status: 400 });
     }
 
+    // Try live Agent Service
+    try {
+      const agentRes = await fetch("http://localhost:3001/policies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(policy)
+      });
+      if (agentRes.ok) {
+        const created = await agentRes.json();
+        return NextResponse.json(created);
+      }
+    } catch (e) {
+      // Fallback
+    }
+
     const client = new T3nClient();
     await client.handshake();
     await client.authenticate(createEthAuthInput("0x1111111111111111111111111111111111111111"));
@@ -28,7 +43,17 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-    // Return all seeded policies or return policy configurations
+    // Try live Agent Service
+    try {
+      const agentRes = await fetch("http://localhost:3001/policies");
+      if (agentRes.ok) {
+        const policies = await agentRes.json();
+        return NextResponse.json(policies);
+      }
+    } catch (e) {
+      // Fallback
+    }
+
     const policies = [
       T3nClient.getPolicy("adult-eu-nosanction"),
       T3nClient.getPolicy("accredited-us"),

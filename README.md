@@ -105,16 +105,23 @@ We use **six** distinct Terminal 3 host capability interfaces:
    cargo build --target wasm32-wasip2 --release
    cd ..
    ```
-3. Install frontend dependencies:
+3. Install & run the standalone backend Agent Service:
+   ```bash
+   cd agent
+   npm install
+   npm run dev
+   ```
+   The agent boots on `http://localhost:3001` and seeds scenarios inside the TEE simulator.
+
+4. Install & run the frontend portal:
    ```bash
    cd board
    npm install
-   ```
-4. Run the local dev server:
-   ```bash
    npm run dev
    ```
    Open `http://localhost:3000` to view the Proofly Dashboard.
+
+> **Production Proxy Pattern:** The frontend portal automatically routes compliance verification requests to the live Agent Service at `http://localhost:3001` if it is online, falling back to a fully integrated in-memory TEE simulator if the backend service is offline.
 
 ---
 

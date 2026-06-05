@@ -6,15 +6,22 @@ Welcome to **Proofly**! This guide walks you through the deterministic scenarios
 
 ## 🚀 How to Run the Demo
 
-### 1. Start the Local Server
+### 1. Start the Standalone Agent Backend (Optional)
+From the `agent/` directory:
+```bash
+npm run dev
+```
+The agent boots on `http://localhost:3001` and initializes the T3N client.
+
+### 2. Start the Frontend Portal
 From the `board/` directory:
 ```bash
 npm run dev
 ```
 Open your browser to `http://localhost:3000`.
 
-### 2. Automatic Seeding
-The dashboard automatically seeds the personas and default compliance policies on mount. You can also reload the page to refresh the state from the `/api/seed` endpoint.
+### 3. Automatic Seeding & Proxying
+The frontend automatically seeds the TEE simulator on mount. If the live Agent Service is running on port 3001, the frontend will transparently route all verification and policy registration calls to it. Otherwise, it falls back to the in-memory simulator.
 
 ---
 

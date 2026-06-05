@@ -9,6 +9,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "userDid and policyId are required" }, { status: 400 });
     }
 
+    // Try communicating with the live backend agent service on port 3001
+    try {
+      const agentRes = await fetch("http://localhost:3001/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userDid, policyId, verifierDid })
+      });
+      if (agentRes.ok) {
+        const presentation = await agentRes.json();
+        return NextResponse.json(presentation);
+      }
+    } catch (e) {
+      // Live agent is offline, fallback to in-memory TEE simulator
+    }
+
     const client = new T3nClient();
     await client.handshake();
     await client.authenticate(createEthAuthInput("0x1111111111111111111111111111111111111111"));
