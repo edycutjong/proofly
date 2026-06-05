@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { T3nClient, createEthAuthInput } from "./T3nClient";
+import { verifyProoflyPresentation } from "./proofly-verify";
 
 describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
   let client: T3nClient;
@@ -342,6 +343,60 @@ describe("Proofly TEE Agent & Contract Test Suite (120+ Assertions)", () => {
           expect(response.disclosed.reason).toContain("age");
         }
       }
+    });
+  });
+
+  describe("Verifier SDK (proofly-verify)", () => {
+    beforeEach(async () => {
+      await client.handshake();
+      await client.authenticate(createEthAuthInput("0x1111"));
+      
+      await client.executeAndDecode({
+        script_name: "z:tenant:proofly",
+        script_version: "1.0.0",
+        function_name: "create-policy",
+        input: {
+          id: "adult-eu-nosanction",
+          require: [
+            { claim: "age", op: ">=", value: 18 },
+            { claim: "country", op: "in", value: "EU" }
+          ]
+        }
+      });
+    });
+
+    it("Successfully verifies a valid Verifiable Presentation envelope and claims", async () => {
+      const presentation = await client.executeAndDecode({
+        script_name: "z:tenant:proofly",
+        script_version: "1.0.0",
+        function_name: "verify-policy",
+        input: {
+          userDid: mayaDid,
+          policyId: "adult-eu-nosanction",
+          verifierDid
+        }
+      });
+
+      const policy = T3nClient.getPolicy("adult-eu-nosanction")!;
+      const result = verifyProoflyPresentation(presentation.vp, policy);
+
+      expect(result.verified).toBe(true);
+      expect(result.disclosed.result).toBe(true);
+      expect(result.error).toBeUndefined();
+    });
+
+    it("Rejects malformed presentations or signature mismatches", () => {
+      const policy = T3nClient.getPolicy("adult-eu-nosanction")!;
+      
+      // Test 1: Invalid prefix
+      let result = verifyProoflyPresentation("invalid-prefix-string", policy);
+      expect(result.verified).toBe(false);
+      expect(result.error).toContain("Invalid presentation format");
+
+      // Test 2: Malformed Base64 envelope
+      result = verifyProoflyPresentation("vp.proofly.notbase64!!!", policy);
+      expect(result.verified).toBe(false);
+      expect(result.error).toContain("Parsing error");
     });
   });
 });

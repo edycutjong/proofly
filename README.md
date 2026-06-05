@@ -22,7 +22,7 @@
 ## 🎬 See it in Action
 
 <div align="center">
-  <img src="docs/devpost-gallery.png" alt="Proofly Board UI" width="100%">
+  <img src="board/public/og-image.png" alt="Proofly Board UI" width="100%">
 </div>
 
 > **The Flow:** Verifier requests a compliance proof (e.g. `over_18 ∧ country ∈ EU ∧ not_sanctioned`) ➔ Proofly loads user's sealed SD-JWT credentials inside the TEE ➔ evaluates policy criteria on plaintext inside isolated memory ➔ issues an SD-JWT selectively disclosing only the boolean result ➔ packages the credential into an OID4VP Verifiable Presentation (`vp`).
@@ -95,8 +95,8 @@ We use **six** distinct Terminal 3 host capability interfaces:
 ### Setup & Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/edycutjong/dorahacks-t3adk-proofly.git
-   cd dorahacks-t3adk-proofly
+   git clone https://github.com/edycutjong/proofly.git
+   cd proofly
    ```
 2. Build the Rust WASM contract:
    ```bash

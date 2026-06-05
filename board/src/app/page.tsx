@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Policy, ClaimReq, Presentation, AuditEntry } from "@/sdk/T3nClient";
+import { verifyProoflyPresentation } from "@/sdk/proofly-verify";
 
 type Persona = {
   did: string;
@@ -526,28 +527,44 @@ export default function Home() {
                     Awaiting TEE signed output...
                   </div>
                 ) : presentation ? (
-                  <div className="flex-1 flex flex-col gap-2.5">
-                    {/* Disclosure Boolean Result */}
-                    <div className={`p-4 rounded-xl border flex items-center justify-between ${
-                      presentation.disclosed.result 
-                        ? "bg-emerald-950/30 border-emerald-500/40 text-emerald-400" 
-                        : "bg-rose-950/30 border-rose-500/40 text-rose-400"
-                    }`}>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{presentation.disclosed.result ? "✅" : "❌"}</span>
-                        <div>
-                          <div className="font-bold uppercase tracking-wider text-xs font-display">
-                            Policy Check: {presentation.disclosed.result ? "PASSED" : "FAILED"}
-                          </div>
-                          {!presentation.disclosed.result && (
-                            <div className="text-[10px] text-rose-300/80 font-mono mt-0.5">
-                              {presentation.disclosed.reason}
+                  (() => {
+                    const currentPolicy = policies.find(p => p.id === selectedPolicyId);
+                    const verifyResult = currentPolicy ? verifyProoflyPresentation(presentation.vp, currentPolicy) : { verified: false, error: "Policy not found" };
+                    return (
+                      <div className="flex-1 flex flex-col gap-2.5">
+                        {/* Disclosure Boolean Result */}
+                        <div className={`p-4 rounded-xl border flex items-center justify-between ${
+                          presentation.disclosed.result 
+                            ? "bg-emerald-950/30 border-emerald-500/40 text-emerald-400" 
+                            : "bg-rose-950/30 border-rose-500/40 text-rose-400"
+                        }`}>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">{presentation.disclosed.result ? "✅" : "❌"}</span>
+                            <div>
+                              <div className="font-bold uppercase tracking-wider text-xs font-display">
+                                Policy Check: {presentation.disclosed.result ? "PASSED" : "FAILED"}
+                              </div>
+                              {!presentation.disclosed.result && (
+                                <div className="text-[10px] text-rose-300/80 font-mono mt-0.5">
+                                  {presentation.disclosed.reason}
+                                </div>
+                              )}
                             </div>
-                          )}
+                          </div>
+                          <span className="text-[10px] font-mono opacity-80">verify()</span>
                         </div>
-                      </div>
-                      <span className="text-[10px] font-mono opacity-80">verify()</span>
-                    </div>
+
+                        {/* Verifier SDK Check Badge */}
+                        <div className={`px-3 py-1.5 rounded-lg border text-[11px] font-mono flex items-center justify-between ${
+                          verifyResult.verified
+                            ? "bg-indigo-950/40 border-indigo-700/50 text-indigo-300 animate-pulse"
+                            : "bg-rose-950/40 border-rose-700/50 text-rose-300"
+                        }`}>
+                          <span>Verifier SDK Status:</span>
+                          <span className="font-bold">
+                            {verifyResult.verified ? "🛡️ VERIFIED (SD-JWT SIGNATURE VALID)" : `❌ FAILURE: ${verifyResult.error}`}
+                          </span>
+                        </div>
 
                     {/* Disclosed object visualization */}
                     <div className="flex-1 font-mono text-[11px] bg-slate-950/60 p-3 rounded-lg border border-[var(--border-subtle)] text-slate-300 flex flex-col gap-2">
@@ -565,8 +582,10 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                ) : null}
-              </div>
+                );
+              })()
+            ) : null}
+          </div>
 
             </div>
           )}
