@@ -8,7 +8,7 @@
   <br/>
 
   [![Live Demo](https://img.shields.io/badge/🚀_Live-Demo-06b6d4?style=for-the-badge)](https://proofly.edycu.dev)
-  [![Pitch Video](https://img.shields.io/badge/🎬_Pitch-Video-ef4444?style=for-the-badge)](https://youtu.be/proofly-demo)
+  [![Pitch Video](https://img.shields.io/badge/🎬_Pitch-Video-ef4444?style=for-the-badge)](https://youtu.be/-SULZJ0C7oI)
   [![Built for DoraHacks](https://img.shields.io/badge/DoraHacks-T3_ADK_Bounty_Challenge-8b5cf6?style=for-the-badge)](https://dorahacks.io/hackathon/t3adkdevchallengebeta)
 
   <br/>
@@ -29,7 +29,7 @@
 | What you're judging | Where to look |
 |---|---|
 | 🚀 **Live demo** | [proofly.edycu.dev](https://proofly.edycu.dev) |
-| 🎬 **90-sec pitch video** | [watch](https://youtu.be/proofly-demo) |
+| 🎬 **90-sec pitch video** | [watch](https://youtu.be/-SULZJ0C7oI) |
 | 🔑 **Agent Auth implementation** (scoped `agent-auth-update` grant + native enforcement) | [`agent/src/authz.ts`](agent/src/authz.ts) · [`agent/src/index.ts`](agent/src/index.ts) |
 | 🧠 **The agentic flow** (problem → delegate → verify → selective disclosure) | [Architecture & Flow](#️-architecture--flow) · [`contract/src/lib.rs`](contract/src/lib.rs) |
 | ✅ **Stability** (CI: lint, typecheck, 100% backend coverage, E2E, SAST, secret scan) | [Engineering Harness](#-engineering-harness--cicd) · [CI runs](https://github.com/edycutjong/proofly/actions) |
