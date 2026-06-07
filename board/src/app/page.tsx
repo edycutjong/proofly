@@ -107,7 +107,12 @@ export default function Home() {
     try {
       const res = await fetch("/api/audit");
       const data = await res.json();
-      setAudits(data);
+      if (Array.isArray(data)) {
+        setAudits(data);
+      } else {
+        setAudits([]);
+        console.error("API returned non-array for audits:", data);
+      }
     } catch (err) {
       console.error("Error fetching audits:", err);
     }
