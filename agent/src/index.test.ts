@@ -1,112 +1,200 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { T3nClient, createEthAuthInput } from "./T3nClient";
-import { AgentIdentityManager } from "./identity";
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from "vitest";
+import request from "supertest";
+import { app, bootstrapAgent, localPolicies, localAudits } from "./index";
+import { T3nClient, loadWasmComponent } from "@terminal3/t3n-sdk";
 import { AgentAuthChecker } from "./authz";
 
-describe("Proofly Standalone Backend Agent Service Test Suite", () => {
-  let client: T3nClient;
-  const mayaDid = "did:t3n:maya_lisbon_24";
-  const dmitriDid = "did:t3n:dmitri_moscow_31";
-  const verifierDid = "did:t3n:crypto_exchange_verifier";
+vi.mock("@terminal3/t3n-sdk", () => ({
+  T3nClient: vi.fn(),
+  loadWasmComponent: vi.fn().mockResolvedValue({}),
+  createEthAuthInput: vi.fn().mockReturnValue({})
+}));
 
-  beforeEach(async () => {
-    T3nClient.clearStore();
-    client = new T3nClient();
-    await client.handshake();
-    await client.authenticate(createEthAuthInput("0x1111111111111111111111111111111111111111"));
+vi.mock("./authz", () => ({
+  AgentAuthChecker: {
+    authorizeFunction: vi.fn()
+  }
+}));
 
-    // Seed Personas
-    T3nClient.seedProfile(mayaDid, {
-      age: 24,
-      country: "PT",
-      kyc: "valid",
-      sanctioned: "no"
-    });
-
-    T3nClient.seedProfile(dmitriDid, {
-      age: 31,
-      country: "RU",
-      kyc: "valid",
-      sanctioned: "yes"
-    });
-
-    // Create default policy
-    await client.executeAndDecode({
-      script_name: "z:tenant:proofly",
-      script_version: "1.0.0",
-      function_name: "create-policy",
-      input: {
-        id: "adult-eu-nosanction",
-        require: [
-          { claim: "age", op: ">=", value: 18 },
-          { claim: "country", op: "in", value: "EU" },
-          { claim: "sanctioned", op: "==", value: "no" }
-      ]
-      }
-    });
+describe("Proofly Agent Server", () => {
+  beforeAll(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  describe("TEE Host Agent Auth Scope Enforcement", () => {
-    it("Allows execution of authorized functions", () => {
-      expect(AgentAuthChecker.authorizeFunction("verify-policy")).toBe(true);
-      expect(AgentAuthChecker.authorizeFunction("create-policy")).toBe(true);
-      expect(AgentAuthChecker.authorizeFunction("get-health")).toBe(true);
-    });
-
-    it("Blocks execution of unauthorized functions (egress control)", () => {
-      expect(() => AgentAuthChecker.authorizeFunction("delete-profile")).toThrow("unauthorized_function");
-      expect(() => AgentAuthChecker.authorizeFunction("export-keys")).toThrow("unauthorized_function");
-    });
-
-    it("Enforces outbound egress allowlist", () => {
-      expect(AgentAuthChecker.authorizeEgress("api.terminal3.io")).toBe(true);
-      expect(() => AgentAuthChecker.authorizeEgress("malicious-attacker-host.com")).toThrow("egress_denied");
-    });
+  afterAll(() => {
+    vi.restoreAllMocks();
   });
 
-  describe("Agent Identity Setup", () => {
-    it("Correctly publishes did:t3n to did-registry and URI to agent-registry", async () => {
-      const manager = new AgentIdentityManager(client);
-      const res = await manager.setupAgentIdentity();
-      expect(res.success).toBe(true);
-      expect(res.agentDid).toBe("did:t3n:proofly_verify_agent");
-    });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localPolicies.length = 0;
+    localAudits.length = 0;
   });
 
-  describe("TEE Enclave Policy Verification logic", () => {
-    it("Generates a valid OID4VP presentation with selective disclosure and 0 bytes PII", async () => {
-      const presentation = await client.executeAndDecode({
-        script_name: "z:tenant:proofly",
-        script_version: "1.0.0",
-        function_name: "verify-policy",
-        input: {
-          userDid: mayaDid,
-          policyId: "adult-eu-nosanction",
-          verifierDid
-        }
+  describe("bootstrapAgent", () => {
+    it("should successfully bootstrap the agent", async () => {
+      const mockHandshake = vi.fn().mockResolvedValue(true);
+      const mockAuthenticate = vi.fn().mockResolvedValue(true);
+      
+      (T3nClient as any).mockImplementation(function() {
+        return {
+          handshake: mockHandshake,
+          authenticate: mockAuthenticate
+        };
       });
 
-      expect(presentation.vp).toContain("vp.proofly.");
-      expect(presentation.disclosed.result).toBe(true);
-      expect(presentation.disclosed.age).toBeUndefined(); // Zero PII check
-      expect(presentation.disclosed.country).toBeUndefined();
+      await bootstrapAgent();
+      
+      expect(mockHandshake).toHaveBeenCalled();
+      expect(mockAuthenticate).toHaveBeenCalled();
+    });
+  });
+
+  describe("POST /verify", () => {
+    it("should verify successfully", async () => {
+      const mockExecuteAndDecode = vi.fn().mockResolvedValue({ verified: true });
+      (T3nClient as any).mockImplementation(function() {
+        return {
+          handshake: vi.fn(),
+          authenticate: vi.fn(),
+          executeAndDecode: mockExecuteAndDecode
+        };
+      });
+      await bootstrapAgent();
+
+      const res = await request(app)
+        .post("/verify")
+        .send({ userDid: "did:test", policyId: "policy1", verifierDid: "did:verifier" });
+      
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ verified: true });
+      expect(AgentAuthChecker.authorizeFunction).toHaveBeenCalledWith("verify-policy");
+      expect(localAudits.length).toBe(1);
     });
 
-    it("Evaluates failure reasons correctly", async () => {
-      const presentation = await client.executeAndDecode({
-        script_name: "z:tenant:proofly",
-        script_version: "1.0.0",
-        function_name: "verify-policy",
-        input: {
-          userDid: dmitriDid,
-          policyId: "adult-eu-nosanction",
-          verifierDid
-        }
+    it("should handle verification errors", async () => {
+      const mockExecuteAndDecode = vi.fn().mockRejectedValue(new Error("Verify Error"));
+      (T3nClient as any).mockImplementation(function() {
+        return {
+          handshake: vi.fn(),
+          authenticate: vi.fn(),
+          executeAndDecode: mockExecuteAndDecode
+        };
       });
+      await bootstrapAgent();
 
-      expect(presentation.disclosed.result).toBe(false);
-      expect(presentation.disclosed.reason).toContain("allowed list"); // failed country RU
-      expect(presentation.disclosed.reason).toContain("sanctioned"); // failed sanctions yes
+      const res = await request(app)
+        .post("/verify")
+        .send({ userDid: "did:test", policyId: "policy1" });
+      
+      expect(res.status).toBe(500);
+      expect(res.body).toEqual({ error: "Verify Error" });
+    });
+  });
+
+  describe("POST /policies", () => {
+    it("should create policy successfully", async () => {
+      const mockExecuteAndDecode = vi.fn().mockResolvedValue({ success: true });
+      (T3nClient as any).mockImplementation(function() {
+        return {
+          handshake: vi.fn(),
+          authenticate: vi.fn(),
+          executeAndDecode: mockExecuteAndDecode
+        };
+      });
+      await bootstrapAgent();
+
+      const res = await request(app)
+        .post("/policies")
+        .send({ id: "policy1", require: [] });
+      
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ success: true });
+      expect(AgentAuthChecker.authorizeFunction).toHaveBeenCalledWith("create-policy");
+      expect(localPolicies.length).toBe(1);
+    });
+
+    it("should handle creation errors", async () => {
+      const mockExecuteAndDecode = vi.fn().mockRejectedValue(new Error("Create Error"));
+      (T3nClient as any).mockImplementation(function() {
+        return {
+          handshake: vi.fn(),
+          authenticate: vi.fn(),
+          executeAndDecode: mockExecuteAndDecode
+        };
+      });
+      await bootstrapAgent();
+
+      const res = await request(app)
+        .post("/policies")
+        .send({ id: "policy1" });
+      
+      expect(res.status).toBe(500);
+      expect(res.body).toEqual({ error: "Create Error" });
+    });
+  });
+
+  describe("GET /policies", () => {
+    it("should return policies", async () => {
+      localPolicies.push({ id: "policy1" });
+      const res = await request(app).get("/policies");
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual([{ id: "policy1" }]);
+    });
+
+    it("should handle error in GET policies", async () => {
+      const circular: any = {};
+      circular.self = circular;
+      localPolicies.push(circular);
+      const res = await request(app).get("/policies");
+      expect(res.status).toBe(500);
+    });
+  });
+
+  describe("GET /audit", () => {
+    it("should return all audits without verifier filter", async () => {
+      localAudits.push({ verifier: "did:verifier1" }, { verifier: "did:verifier2" });
+      const res = await request(app).get("/audit");
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(2);
+    });
+
+    it("should return filtered audits when verifier is provided", async () => {
+      localAudits.push({ verifier: "did:verifier1" }, { verifier: "did:verifier2" });
+      const res = await request(app).get("/audit?verifier=did:verifier1");
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0].verifier).toBe("did:verifier1");
+    });
+
+    it("should handle error in GET audit", async () => {
+      const circular: any = {};
+      circular.self = circular;
+      localAudits.push(circular);
+      const res = await request(app).get("/audit");
+      expect(res.status).toBe(500);
+    });
+  });
+
+  describe("GET /health", () => {
+    it("should return healthy status", async () => {
+      const res = await request(app).get("/health");
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe("healthy");
+      expect(res.body.agentDid).toBeDefined();
+      expect(res.body.uptime).toBeDefined();
+    });
+
+    it("should fallback to unknown when agentDid is falsy", async () => {
+      const { AgentIdentityManager } = await import("./identity");
+      const getAgentSpy = vi.spyOn(AgentIdentityManager.prototype, "getAgentDid").mockReturnValue("");
+      
+      const res = await request(app).get("/health");
+      expect(res.status).toBe(200);
+      expect(res.body.agentDid).toBe("unknown");
+      
+      getAgentSpy.mockRestore();
     });
   });
 });

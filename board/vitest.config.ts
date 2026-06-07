@@ -4,8 +4,13 @@ import path from "path";
 export default defineConfig({
   test: {
     globals: true,
-    environment: "node",
-    exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**", "**/package/**"],
+    environment: "jsdom",
+    exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**", "**/package/**", "**/demo/**"],
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.ts", "src/**/*.tsx"],
+      exclude: ["src/**/types.ts", "**/*.d.ts"],
+    },
   },
   resolve: {
     alias: {
