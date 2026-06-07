@@ -89,6 +89,13 @@ jobs:
         run: npm run typecheck
       - name: Unit tests with coverage
         run: npm run test:coverage
+      - name: Upload coverage report
+        if: matrix.node-version == 20
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-coverage
+          path: agent/coverage/
+          retention-days: 7
 
   # ── STAGE 2: Security Gate ────────────────────────────────
   secret-scan:
@@ -117,6 +124,11 @@ jobs:
       - name: Audit Frontend
         run: |
           cd board
+          npm audit --audit-level=high
+        continue-on-error: true
+      - name: Audit Agent
+        run: |
+          cd agent
           npm audit --audit-level=high
         continue-on-error: true
 
