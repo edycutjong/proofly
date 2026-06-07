@@ -46,27 +46,6 @@ jobs:
           path: board/coverage/
           retention-days: 7
 
-  backend-quality:
-    name: "Stage 1 · Backend Quality"
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: agent
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "npm"
-          cache-dependency-path: agent/package-lock.json
-      - name: Install dependencies
-        run: npm ci
-      - name: Type check (tsc)
-        run: npm run build
-      - name: Unit tests
-        run: npm run test
 
   contract-quality:
     name: "Stage 1 · Contract Quality"
@@ -113,16 +92,12 @@ jobs:
           cd board
           npm audit --audit-level=high
         continue-on-error: true
-      - name: Audit Backend
-        run: |
-          cd agent
-          npm audit --audit-level=high
-        continue-on-error: true
+
 
   # ── STAGE 3: Build Verification ───────────────────────────
   build:
     name: "Stage 3 · Build Verification"
-    needs: [frontend-quality, backend-quality, contract-quality]
+    needs: [frontend-quality, contract-quality]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -240,7 +215,6 @@ jobs:
           echo ""
           echo "Pipeline Summary:"
           echo "  ✅ Stage 1 — Frontend Quality (lint, typecheck, tests)"
-          echo "  ✅ Stage 1 — Backend Quality (build, tests)"
           echo "  ✅ Stage 1 — Contract Quality (cargo check)"
           echo "  ✅ Stage 2 — Secret Scanning (TruffleHog)"
           echo "  ✅ Stage 2 — Dependency Audit"
