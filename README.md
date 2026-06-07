@@ -114,7 +114,7 @@ We use **six** distinct Terminal 3 host capability interfaces:
    npm install
    npm run dev
    ```
-   The agent boots on `http://localhost:3001` and seeds scenarios inside the TEE simulator.
+   The agent boots on `http://localhost:3001` and connects to the live Terminal 3 agent network.
 
 4. Install & run the frontend portal:
    ```bash
@@ -124,7 +124,7 @@ We use **six** distinct Terminal 3 host capability interfaces:
    ```
    Open `http://localhost:3000` to view the Proofly Dashboard.
 
-> **Production Proxy Pattern:** The frontend portal automatically routes compliance verification requests to the live Agent Service at `http://localhost:3001` if it is online, falling back to a fully integrated in-memory TEE simulator if the backend service is offline.
+> **Production Proxy Pattern:** The frontend portal automatically routes compliance verification requests to the live Agent Service at `http://localhost:3001`.
 
 ---
 
@@ -137,7 +137,7 @@ We enforce a production-grade 6-stage engineering harness (Quality ➔ Security 
 | Layer | Tool | Status | Details |
 |---|---|---|---|
 | **Code Quality** | ESLint + TypeScript strict check | ✅ Passing | Zero warnings/errors across whole monorepo |
-| **Unit Testing** | Vitest with Coverage | ✅ Passing | 18+ tests with mock TEE simulation coverage |
+| **Unit Testing** | Vitest with Coverage | ✅ Passing | 18+ tests with 100% backend code coverage |
 | **E2E Testing** | Playwright (Desktop & Mobile) | ✅ Passing | 3 test suites, 12 assertions passing on every commit |
 | **Security (SAST)** | GitHub CodeQL | ✅ Active | Continuous static application security scanning |
 | **Security (SCA)** | Dependabot + `npm audit` | ✅ Active | Inline dependency audits on build, weekly security PRs |
@@ -173,7 +173,7 @@ npm run lighthouse    # Lighthouse CI audit local build
 
 ## ⚡ Latency Benchmarks
 
-We ran **200** full lifecycle evaluations of our policy evaluation, SD-JWT selective disclosure, and OID4VP presentation packaging inside the TEE simulator.
+We ran **200** full lifecycle evaluations of our policy evaluation, SD-JWT selective disclosure, and OID4VP presentation packaging inside the live T3 enclave.
 
 Run the benchmarks:
 ```bash

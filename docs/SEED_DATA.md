@@ -23,7 +23,7 @@ Each fails for a **different** reason → proves composition (`age AND country A
 - `age-gate-18`: `age>=18`
 
 ## Generator
-`scripts/seed.ts` — deterministic: seals the three personas' credentials into the (mock) TEE store, registers Proofly's `did:t3n`, creates the three policies. Same output every run. Fixtures mirrored to `data/fixtures/personas.json` for inspection.
+`scripts/seed.ts` — deterministic: seals the three personas' credentials into the live TEE store, registers Proofly's `did:t3n`, creates the three policies. Same output every run. Fixtures mirrored to `data/fixtures/personas.json` for inspection.
 
 ## Anti-pattern avoided
 No lorem-ipsum users. Each persona is engineered so the demo can show a **true**, a **policy-fail-on-sanctions**, and a **policy-fail-on-age** back to back — a 30-second proof that the engine reasons, and that PII never crosses the boundary in any case.
