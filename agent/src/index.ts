@@ -144,9 +144,11 @@ app.get("/health", (req, res) => {
 
 /* v8 ignore next 6 */
 if (require.main === module) {
-  app.listen(port, async () => {
-    await bootstrapAgent();
-    console.log(`🚀 Proofly Agent backend service running at http://localhost:${port}`);
+  app.listen(Number(port), "0.0.0.0", async () => {
+    bootstrapAgent().catch((err) => {
+      console.error("[Boot Error] Failed to bootstrap agent:", err);
+    });
+    console.log(`🚀 Proofly Agent backend service running at http://0.0.0.0:${port}`);
   });
 }
 
