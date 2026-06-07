@@ -23,7 +23,7 @@ jobs:
         working-directory: board
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
@@ -55,7 +55,7 @@ jobs:
         working-directory: contract
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -74,7 +74,7 @@ jobs:
         working-directory: agent
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: TruffleHog Secret Scan
@@ -116,7 +116,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -140,7 +140,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -190,7 +190,7 @@ jobs:
         working-directory: board
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -227,7 +227,7 @@ jobs:
         working-directory: board
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
