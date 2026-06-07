@@ -22,6 +22,24 @@
 
 ---
 
+## 🧑‍⚖️ For Judges
+
+**TL;DR:** Proofly is a `did:t3n` agent you delegate a compliance check to. Using Terminal 3's **Agent Auth SDK**, the data owner signs a scoped grant that lets the agent run exactly one function — `verify` — and nothing else; the host enforces it natively (no rogue functions, no rogue egress). The agent reads sealed credentials inside an Intel TDX enclave and returns an SD-JWT + OID4VP presentation disclosing only a signed `yes`/`no` — **zero PII crosses the network**.
+
+| What you're judging | Where to look |
+|---|---|
+| 🚀 **Live demo** | [proofly.edycu.dev](https://proofly.edycu.dev) |
+| 🎬 **90-sec pitch video** | [watch](https://youtu.be/proofly-demo) |
+| 🔑 **Agent Auth implementation** (scoped `agent-auth-update` grant + native enforcement) | [`agent/src/authz.ts`](agent/src/authz.ts) · [`agent/src/index.ts`](agent/src/index.ts) |
+| 🧠 **The agentic flow** (problem → delegate → verify → selective disclosure) | [Architecture & Flow](#️-architecture--flow) · [`contract/src/lib.rs`](contract/src/lib.rs) |
+| ✅ **Stability** (CI: lint, typecheck, 100% backend coverage, E2E, SAST, secret scan) | [Engineering Harness](#-engineering-harness--cicd) · [CI runs](https://github.com/edycutjong/proofly/actions) |
+| 🐞 **Onboarding bug + doc-gap report** (the $200 track) | [`docs/ONBOARDING_BUG_REPORT.md`](docs/ONBOARDING_BUG_REPORT.md) |
+| 🔌 **Why only Terminal 3** | [`docs/SPONSOR_DEFENSE.md`](docs/SPONSOR_DEFENSE.md) |
+
+> **Run it in 60s:** `cd agent && npm install && npm run dev` (agent on :3001), then `cd board && npm install && npm run dev` (UI on :3000). Without an `AGENT_KEY` the agent boots in demo mode; set one from the [T3 claim page](https://www.terminal3.io/claim-page) for live auth.
+
+---
+
 ## 🎬 See it in Action
 
 <div align="center">
