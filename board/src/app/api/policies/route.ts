@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { T3nClient, createEthAuthInput } from "@/sdk/T3nClient";
 
 export async function POST(req: Request) {
   try {
@@ -9,32 +8,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "policy id and require rules are required" }, { status: 400 });
     }
 
-    // Try live Agent Service
-    try {
-      const agentRes = await fetch("http://localhost:3001/policies", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(policy)
-      });
-      if (agentRes.ok) {
-        const created = await agentRes.json();
-        return NextResponse.json(created);
-      }
-    } catch {
-      // Fallback
-    }
-
-    const client = new T3nClient();
-    await client.handshake();
-    await client.authenticate(createEthAuthInput("0x1111111111111111111111111111111111111111"));
-
-    const created = await client.executeAndDecode({
-      script_name: "z:tenant:proofly",
-      script_version: "1.0.0",
-      function_name: "create-policy",
-      input: policy
+    const agentUrl = process.env.AGENT_SERVICE_URL || "http://localhost:3001";
+    const res = await fetch(`${agentUrl}/policies`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(policy)
     });
 
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "Failed to create policy in agent service");
+    }
+
+    const created = await res.json();
     return NextResponse.json(created);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Failed to create policy";
@@ -44,23 +30,15 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-    // Try live Agent Service
-    try {
-      const agentRes = await fetch("http://localhost:3001/policies");
-      if (agentRes.ok) {
-        const policies = await agentRes.json();
-        return NextResponse.json(policies);
-      }
-    } catch {
-      // Fallback
+    const agentUrl = process.env.AGENT_SERVICE_URL || "http://localhost:3001";
+    const res = await fetch(`${agentUrl}/policies`);
+    
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "Failed to fetch policies from agent service");
     }
 
-    const policies = [
-      T3nClient.getPolicy("adult-eu-nosanction"),
-      T3nClient.getPolicy("accredited-us"),
-      T3nClient.getPolicy("age-gate-18")
-    ].filter(Boolean);
-
+    const policies = await res.json();
     return NextResponse.json(policies);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";

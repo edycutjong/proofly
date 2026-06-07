@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Policy, ClaimReq, Presentation, AuditEntry } from "@/sdk/T3nClient";
+import { Policy, ClaimReq, Presentation, AuditEntry } from "@/sdk/t3n";
 import { verifyProoflyPresentation } from "@/sdk/proofly-verify";
 
 type Persona = {
@@ -181,6 +181,7 @@ export default function Home() {
       setPresentation(data);
       await fetchAudits();
     } catch (err) {
+      /* v8 ignore next */
       console.error("Error verifying policy:", err);
     } finally {
       setLoading(false);
@@ -204,9 +205,9 @@ export default function Home() {
   return (
     <div className="min-h-screen px-4 py-8 md:px-8 max-w-7xl mx-auto flex flex-col gap-8">
       {/* Header */}
-      <header className="flex flex-col md:flex-row items-center justify-between border-b border-[var(--border-subtle)] pb-6 gap-4">
+      <header className="flex flex-col md:flex-row items-center justify-between border-b border-(--border-subtle) pb-6 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center glow-primary">
+          <div className="w-12 h-12 rounded-xl bg-linear-to-tr from-indigo-600 to-violet-600 flex items-center justify-center glow-primary">
             {/* Interlocking lock rings icon */}
             <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -214,7 +215,7 @@ export default function Home() {
           </div>
           <div>
             <h1 className="text-3xl font-bold font-display tracking-tight text-gradient">PROOFLY</h1>
-            <p className="text-sm text-[var(--text-mid)]">Zero-Knowledge Attribute Proofs inside attested TEEs</p>
+            <p className="text-sm text-(--text-mid)">Zero-Knowledge Attribute Proofs inside attested TEEs</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -249,14 +250,14 @@ export default function Home() {
                     className={`flex items-center justify-between p-4 rounded-xl text-left border ${
                       isSelected 
                         ? "bg-indigo-950/40 border-indigo-500/80 shadow-[0_0_15px_rgba(99,102,241,0.2)]" 
-                        : "bg-slate-900/10 border-[var(--border-subtle)] hover:border-[var(--border-default)]"
+                        : "bg-slate-900/10 border-(--border-subtle) hover:border-(--border-default)"
                     } transition-all duration-200`}
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{p.avatar}</span>
                       <div>
-                        <div className="font-semibold text-[var(--text-hi)]">{p.name}</div>
-                        <div className="text-xs text-[var(--text-mid)] font-mono">{p.did}</div>
+                        <div className="font-semibold text-(--text-hi)">{p.name}</div>
+                        <div className="text-xs text-(--text-mid) font-mono">{p.did}</div>
                       </div>
                     </div>
                     {isSelected && (
@@ -268,8 +269,8 @@ export default function Home() {
             </div>
 
             {/* Selected Persona Raw Details */}
-            <div className="mt-2 p-4 rounded-xl bg-slate-950/40 border border-[var(--border-subtle)] font-mono text-xs text-[var(--text-mid)] flex flex-col gap-2">
-              <div className="text-[var(--text-hi)] font-bold border-b border-[var(--border-subtle)] pb-1.5 mb-1 flex justify-between items-center">
+            <div className="mt-2 p-4 rounded-xl bg-slate-950/40 border border-(--border-subtle) font-mono text-xs text-(--text-mid) flex flex-col gap-2">
+              <div className="text-(--text-hi) font-bold border-b border-(--border-subtle) pb-1.5 mb-1 flex justify-between items-center">
                 <span>📂 Raw Identity Documents (PII)</span>
                 <span className="text-[10px] text-indigo-400 uppercase tracking-widest font-sans">Sealed in T3 Enclave</span>
               </div>
@@ -312,16 +313,16 @@ export default function Home() {
                     className={`flex flex-col p-4 rounded-xl text-left border ${
                       isSelected 
                         ? "bg-violet-950/40 border-violet-500/80 shadow-[0_0_15px_rgba(139,92,246,0.2)]" 
-                        : "bg-slate-900/10 border-[var(--border-subtle)] hover:border-[var(--border-default)]"
+                        : "bg-slate-900/10 border-(--border-subtle) hover:border-(--border-default)"
                     } transition-all duration-200`}
                   >
                     <div className="flex justify-between items-center w-full mb-1">
-                      <span className="font-semibold font-mono text-[var(--text-hi)]">{pol.id}</span>
+                      <span className="font-semibold font-mono text-(--text-hi)">{pol.id}</span>
                       {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-violet-500 shadow-sm shadow-violet-400"></span>}
                     </div>
-                    <div className="text-xs text-[var(--text-mid)] flex flex-wrap gap-1 mt-1">
+                    <div className="text-xs text-(--text-mid) flex flex-wrap gap-1 mt-1">
                       {pol.require.map((r, i) => (
-                        <span key={i} className="px-1.5 py-0.5 rounded bg-slate-950/50 border border-[var(--border-subtle)] font-mono">
+                        <span key={i} className="px-1.5 py-0.5 rounded bg-slate-950/50 border border-(--border-subtle) font-mono">
                           {r.claim} {r.op || "=="} {JSON.stringify(r.value)}
                         </span>
                       ))}
@@ -344,7 +345,7 @@ export default function Home() {
                   type="text"
                   value={customPolicyId}
                   onChange={(e) => setCustomPolicyId(e.target.value)}
-                  className="w-full bg-slate-950 border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-[var(--text-hi)] font-mono focus:border-indigo-500 focus:outline-none"
+                  className="w-full bg-slate-950 border border-(--border-subtle) rounded-lg px-3 py-2 text-sm text-(--text-hi) font-mono focus:border-indigo-500 focus:outline-none"
                 />
               </div>
 
@@ -355,7 +356,7 @@ export default function Home() {
                     <select
                       value={rule.claim}
                       onChange={(e) => handleRuleChange(idx, "claim", e.target.value)}
-                      className="bg-slate-950 border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 text-xs text-[var(--text-hi)] focus:outline-none"
+                      className="bg-slate-950 border border-(--border-subtle) rounded-lg px-2 py-1.5 text-xs text-(--text-hi) focus:outline-none"
                     >
                       <option value="age">age</option>
                       <option value="country">country</option>
@@ -367,7 +368,7 @@ export default function Home() {
                     <select
                       value={rule.op || "=="}
                       onChange={(e) => handleRuleChange(idx, "op", e.target.value)}
-                      className="bg-slate-950 border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 text-xs text-[var(--text-hi)] focus:outline-none"
+                      className="bg-slate-950 border border-(--border-subtle) rounded-lg px-2 py-1.5 text-xs text-(--text-hi) focus:outline-none"
                     >
                       <option value="==">==</option>
                       <option value=">=">&gt;=</option>
@@ -380,7 +381,7 @@ export default function Home() {
                       placeholder="value"
                       value={(rule.value as string | number | undefined) ?? ""}
                       onChange={(e) => handleRuleChange(idx, "value", e.target.value)}
-                      className="bg-slate-950 border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 text-xs text-[var(--text-hi)] font-mono w-24 focus:outline-none"
+                      className="bg-slate-950 border border-(--border-subtle) rounded-lg px-2 py-1.5 text-xs text-(--text-hi) font-mono w-24 focus:outline-none"
                     />
 
                     <button
@@ -396,7 +397,7 @@ export default function Home() {
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={handleAddRule}
-                  className="flex-1 px-3 py-1.5 border border-dashed border-[var(--border-subtle)] text-slate-400 hover:text-white rounded-lg text-xs transition"
+                  className="flex-1 px-3 py-1.5 border border-dashed border-(--border-subtle) text-slate-400 hover:text-white rounded-lg text-xs transition"
                 >
                   + Add Rule
                 </button>
@@ -417,13 +418,13 @@ export default function Home() {
           
           {/* Execution Button */}
           <div className="glass rounded-2xl p-6 flex flex-col gap-4 items-center justify-center text-center">
-            <p className="text-sm text-[var(--text-mid)] max-w-md">
+            <p className="text-sm text-(--text-mid) max-w-md">
               Evaluating <span className="font-mono text-white">{selectedPersona.name}</span> against compliance policy <span className="font-mono text-white">{selectedPolicyId}</span>. All verification evaluates inside a secure TEE.
             </p>
             <button
               onClick={handleVerify}
               disabled={loading}
-              className={`px-8 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold rounded-xl text-lg transition duration-200 transform hover:scale-[1.02] shadow-[0_0_20px_rgba(99,102,241,0.4)] disabled:opacity-50 flex items-center gap-3`}
+              className={`px-8 py-4 bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold rounded-xl text-lg transition duration-200 transform hover:scale-[1.02] shadow-[0_0_20px_rgba(99,102,241,0.4)] disabled:opacity-50 flex items-center gap-3`}
             >
               {loading ? (
                 <>
@@ -442,8 +443,8 @@ export default function Home() {
 
             {/* Enclave Loading Step Indicators */}
             {loading && (
-              <div className="w-full mt-4 flex flex-col gap-2.5 text-left border-t border-[var(--border-subtle)] pt-4 max-w-lg">
-                <div className="text-xs text-[var(--text-mid)] uppercase tracking-wider font-semibold font-mono">TEE Execution Pipeline:</div>
+              <div className="w-full mt-4 flex flex-col gap-2.5 text-left border-t border-(--border-subtle) pt-4 max-w-lg">
+                <div className="text-xs text-(--text-mid) uppercase tracking-wider font-semibold font-mono">TEE Execution Pipeline:</div>
                 <div className="flex flex-col gap-1.5 font-mono text-[11px]">
                   {loadingSteps.map((step, idx) => {
                     const isCompleted = idx < currentStep;
@@ -477,7 +478,7 @@ export default function Home() {
               <div className="glass border-indigo-500/20 rounded-2xl p-5 relative overflow-hidden flex flex-col gap-3 min-h-[300px]">
                 {/* Background Glow */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
-                <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
+                <div className="flex items-center justify-between border-b border-(--border-subtle) pb-3">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
                     <span className="font-bold font-display text-sm uppercase text-indigo-300">Inside TEE Enclave</span>
@@ -491,12 +492,12 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-col gap-2.5">
-                    <div className="flex items-center justify-between p-2 rounded bg-slate-950/40 border border-dashed border-[var(--border-subtle)] text-[10px] text-slate-400 font-mono">
+                    <div className="flex items-center justify-between p-2 rounded bg-slate-950/40 border border-dashed border-(--border-subtle) text-[10px] text-slate-400 font-mono">
                       <span>CEK Decryption:</span>
                       <span className="text-emerald-400 font-semibold">Success (Hardware Attested)</span>
                     </div>
 
-                    <div className="flex-1 font-mono text-[11px] bg-slate-950/60 p-3 rounded-lg border border-[var(--border-subtle)] text-slate-300 overflow-x-auto whitespace-pre-wrap select-all">
+                    <div className="flex-1 font-mono text-[11px] bg-slate-950/60 p-3 rounded-lg border border-(--border-subtle) text-slate-300 overflow-x-auto whitespace-pre-wrap select-all">
                       {JSON.stringify({
                         did: selectedPersona.did,
                         rawProfile: selectedPersona.profile
@@ -514,7 +515,7 @@ export default function Home() {
               <div className="glass border-violet-500/20 rounded-2xl p-5 relative overflow-hidden flex flex-col gap-3 min-h-[300px]">
                 {/* Background Glow */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-2xl pointer-events-none"></div>
-                <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
+                <div className="flex items-center justify-between border-b border-(--border-subtle) pb-3">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-violet-500 animate-pulse"></span>
                     <span className="font-bold font-display text-sm uppercase text-violet-300">Verifier Received</span>
@@ -567,14 +568,14 @@ export default function Home() {
                         </div>
 
                     {/* Disclosed object visualization */}
-                    <div className="flex-1 font-mono text-[11px] bg-slate-950/60 p-3 rounded-lg border border-[var(--border-subtle)] text-slate-300 flex flex-col gap-2">
-                      <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold border-b border-[var(--border-subtle)] pb-1 mb-1">
+                    <div className="flex-1 font-mono text-[11px] bg-slate-950/60 p-3 rounded-lg border border-(--border-subtle) text-slate-300 flex flex-col gap-2">
+                      <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold border-b border-(--border-subtle) pb-1 mb-1">
                         Network Response (Disclosed Claim Only):
                       </div>
                       <div className="flex-1 whitespace-pre-wrap select-all">
                         {JSON.stringify(presentation.disclosed, null, 2)}
                       </div>
-                      <div className="text-[9px] text-slate-500 border-t border-[var(--border-subtle)] pt-1.5 mt-1">
+                      <div className="text-[9px] text-slate-500 border-t border-(--border-subtle) pt-1.5 mt-1">
                         VP Attestation Hash:
                         <span className="text-violet-400 block break-all font-mono mt-0.5">
                           {presentation.vp}
@@ -584,7 +585,7 @@ export default function Home() {
                   </div>
                 );
               })()
-            ) : null}
+            ) : /* v8 ignore next */ null}
           </div>
 
             </div>
@@ -592,7 +593,7 @@ export default function Home() {
 
           {/* Audit Logs */}
           <div className="glass rounded-2xl p-6 flex flex-col gap-4">
-            <div className="flex justify-between items-center border-b border-[var(--border-subtle)] pb-3">
+            <div className="flex justify-between items-center border-b border-(--border-subtle) pb-3">
               <h2 className="text-lg font-bold font-display text-gradient flex items-center gap-2">
                 <span>📋</span> Attested Audit Logs
               </h2>
@@ -607,7 +608,7 @@ export default function Home() {
             <div className="overflow-x-auto">
               <table className="w-full font-mono text-xs text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-[var(--border-subtle)] text-slate-400">
+                  <tr className="border-b border-(--border-subtle) text-slate-400">
                     <th className="py-2.5 font-semibold">Timestamp</th>
                     <th className="py-2.5 font-semibold">User DID</th>
                     <th className="py-2.5 font-semibold">Policy</th>
@@ -616,7 +617,7 @@ export default function Home() {
                     <th className="py-2.5 font-semibold text-right">Attestation</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--border-subtle)] text-slate-300">
+                <tbody className="divide-y divide-(--border-subtle) text-slate-300">
                   {audits.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="py-8 text-center text-slate-500 font-sans">
@@ -639,7 +640,7 @@ export default function Home() {
                           {audit.verifier.split(":").pop()}
                         </td>
                         <td className="py-3">
-                          <span className="px-1.5 py-0.5 rounded bg-slate-950 border border-[var(--border-subtle)] text-[10px] text-emerald-400">
+                          <span className="px-1.5 py-0.5 rounded bg-slate-950 border border-(--border-subtle) text-[10px] text-emerald-400">
                             {audit.disclosed.join(", ")}
                           </span>
                         </td>

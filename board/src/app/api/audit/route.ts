@@ -1,26 +1,20 @@
 import { NextResponse } from "next/server";
-import { T3nClient } from "@/sdk/T3nClient";
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const verifier = searchParams.get("verifier") || undefined;
+    const verifier = searchParams.get("verifier");
+    const query = verifier ? `?verifier=${encodeURIComponent(verifier)}` : "";
 
-    // Try live Agent Service
-    try {
-      const url = verifier 
-        ? `http://localhost:3001/audit?verifier=${encodeURIComponent(verifier)}`
-        : "http://localhost:3001/audit";
-      const agentRes = await fetch(url);
-      if (agentRes.ok) {
-        const audits = await agentRes.json();
-        return NextResponse.json(audits);
-      }
-    } catch {
-      // Fallback
+    const agentUrl = process.env.AGENT_SERVICE_URL || "http://localhost:3001";
+    const res = await fetch(`${agentUrl}/audit${query}`);
+    
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "Failed to fetch audit logs from agent service");
     }
 
-    const audits = T3nClient.getAudits(verifier);
+    const audits = await res.json();
     return NextResponse.json(audits);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";

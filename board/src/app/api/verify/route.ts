@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { T3nClient, createEthAuthInput } from "@/sdk/T3nClient";
 
 export async function POST(req: Request) {
   try {
@@ -9,37 +8,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "userDid and policyId are required" }, { status: 400 });
     }
 
-    // Try communicating with the live backend agent service on port 3001
-    try {
-      const agentRes = await fetch("http://localhost:3001/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userDid, policyId, verifierDid })
-      });
-      if (agentRes.ok) {
-        const presentation = await agentRes.json();
-        return NextResponse.json(presentation);
-      }
-    } catch {
-      // Live agent is offline, fallback to in-memory TEE simulator
-    }
-
-    const client = new T3nClient();
-    await client.handshake();
-    await client.authenticate(createEthAuthInput("0x1111111111111111111111111111111111111111"));
-
-    const presentation = await client.executeAndDecode({
-      script_name: "z:tenant:proofly",
-      script_version: "1.0.0",
-      function_name: "verify-policy",
-      input: {
+    // Proxy request to the live Agent Service
+    const agentUrl = process.env.AGENT_SERVICE_URL || "http://localhost:3001";
+    const res = await fetch(`${agentUrl}/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         userDid,
         policyId,
-        verifierDid: verifierDid || "did:t3n:crypto_exchange_verifier",
-        ts: Math.floor(Date.now() / 1000)
-      }
+        verifierDid: verifierDid || "did:t3n:crypto_exchange_verifier"
+      })
     });
 
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "Verification failed in agent service");
+    }
+
+    const presentation = await res.json();
     return NextResponse.json(presentation);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Verification failed";

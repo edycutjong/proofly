@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://proofly.edycu.dev"),
   title: "Proofly — TEE-Secured Privacy Verification Agent",
   description: "Prove attributes without revealing PII using selectively disclosed credentials inside attested hardware enclaves.",
   icons: {
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Proofly — TEE-Secured Privacy Verification Agent",
     description: "Prove attributes without revealing PII using selectively disclosed credentials inside attested hardware enclaves.",
-    url: "https://proofly.vercel.app",
+    url: "https://proofly.edycu.dev",
     siteName: "Proofly",
     images: [
       {
