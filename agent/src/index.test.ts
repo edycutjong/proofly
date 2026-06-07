@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { app, bootstrapAgent, localPolicies, localAudits } from "./index";
-import { T3nClient, loadWasmComponent, metamask_sign, eth_get_address } from "@terminal3/t3n-sdk";
+import { T3nClient, metamask_sign, eth_get_address } from "@terminal3/t3n-sdk";
 import { AgentAuthChecker } from "./authz";
 
 vi.mock("@terminal3/t3n-sdk", () => ({
