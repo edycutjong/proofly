@@ -78,13 +78,16 @@ flowchart LR
 
 ## 🏆 Sponsor Tracks Targeted & SDK Surface Area
 
-We use **six** distinct Terminal 3 host capability interfaces:
-1. **`signing`** (`contract/src/lib.rs:208`): Generates SD-JWT selectively-disclosed credentials inside the hardware VM.
-2. **`vp`** (`contract/src/lib.rs:215`): Packages credentials as OID4VP Verifiable Presentations.
-3. **`user-profile`** (`contract/src/lib.rs:88`): Stores and retrieves encrypted user profiles securely.
-4. **`kv-store`** (`contract/src/lib.rs:60`): Manages registered policies and audit logs.
-5. **`did-registry` & `agent-registry`** (`board/src/app/api/seed/route.ts`): Registers agent identities.
-6. **TEE Attestation (Intel TDX):** Enforces execution of compiled WASM logic inside hardware-secured VMs.
+**Primary track — Agent Auth SDK.** The data owner signs an `agent-auth-update` that scopes the Proofly agent to exactly its `verify-policy` / `create-policy` / `get-health` functions and `api.terminal3.io` egress. T3N enforces this natively at the host layer — an out-of-scope function or host fails with `host/agent-auth.unauthorized_function` / `host/http.egress_denied`. We construct the real grant payload in `agent/src/authz.ts` (`buildAgentAuthUpdateInput`).
+
+We use **seven** distinct Terminal 3 host capability interfaces:
+1. **`agent-auth`** (`agent/src/authz.ts`): Scopes the agent to its functions + egress allowlist via a signed `agent-auth-update` grant (the bounty centerpiece).
+2. **`signing`** (`contract/src/lib.rs:196`): Generates SD-JWT selectively-disclosed credentials inside the hardware VM.
+3. **`vp`** (`contract/src/lib.rs:208`): Packages credentials as OID4VP Verifiable Presentations.
+4. **`user-profile`** (`contract/src/lib.rs:95`): Stores and retrieves encrypted user profiles securely.
+5. **`kv-store`** (`contract/src/lib.rs:67`): Manages registered policies and audit logs.
+6. **`did-registry` & `agent-registry`** (`agent/src/identity.ts`): Resolves the agent's `did:t3n` identity and discoverable agent URI.
+7. **TEE Attestation (Intel TDX):** Enforces execution of compiled WASM logic inside hardware-secured VMs.
 
 ---
 
@@ -171,19 +174,20 @@ npm run lighthouse    # Lighthouse CI audit local build
 
 ---
 
-## ⚡ Latency Benchmarks
+## ⚡ Policy-Evaluation Microbenchmark
 
-We ran **200** full lifecycle evaluations of our policy evaluation, SD-JWT selective disclosure, and OID4VP presentation packaging inside the live T3 enclave.
+We ran **200** iterations of the AND-composed policy-evaluation step (claim comparison) **in-process**, mirroring `contract/src/lib.rs:verify_policy`.
 
-Run the benchmarks:
+> **Scope:** This measures the deterministic evaluation logic, **not** a live T3N enclave round-trip (handshake + encrypted channel + Wasmtime execution + SD-JWT/VP packaging), which is network-bound. Numbers are fully reproducible:
+
 ```bash
 python3 scripts/bench.py
 ```
 
-### Results
-* **Mean Latency:** 0.009874 ms
-* **p50 (Median):** 0.006000 ms
-* **p95 Latency:** 0.011709 ms
+### Results (representative run)
+* **Mean:** 0.000611 ms
+* **p50 (Median):** 0.000292 ms
+* **p95:** 0.000625 ms
 
 ---
 

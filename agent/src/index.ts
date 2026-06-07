@@ -1,6 +1,12 @@
 import express from "express";
 import cors from "cors";
-import { T3nClient, createEthAuthInput, loadWasmComponent } from "@terminal3/t3n-sdk";
+import {
+  T3nClient,
+  createEthAuthInput,
+  loadWasmComponent,
+  metamask_sign,
+  eth_get_address,
+} from "@terminal3/t3n-sdk";
 import { AgentIdentityManager } from "./identity";
 import { AgentAuthChecker } from "./authz";
 
@@ -17,25 +23,43 @@ let identityManager: AgentIdentityManager;
 const localPolicies: any[] = [];
 const localAudits: any[] = [];
 
-// Seed personas & default policies in TEE KV store
+// Bootstrap the agent: open an encrypted TEE channel and authenticate the
+// agent *as itself* (agents authenticate as themselves, not as tenants).
+//
+// T3N auth is a challenge/response signed by the agent's key via the EthSign
+// guest-to-host handler — there is no bearer-token path. The agent key is
+// supplied out-of-band through AGENT_KEY; we derive the address from it and
+// wire `handlers.EthSign` so `authenticate()` can answer the challenge.
 async function bootstrapAgent() {
   const wasmComponent = await loadWasmComponent();
-  
+
+  const agentKey = process.env.AGENT_KEY;
+  const agentAddress = agentKey ? eth_get_address(agentKey) : undefined;
+
   t3n = new T3nClient({
-    baseUrl: "https://api.terminal3.io",
+    baseUrl: process.env.T3N_BASE_URL || "https://api.terminal3.io",
     wasmComponent,
-    headers: {
-      "Authorization": `Bearer ${process.env.T3N_BEARER_TOKEN || "0xREDACTED_TESTNET_KEY"}`
-    }
+    // The only auth path: sign the handshake challenge with the agent's key.
+    handlers: agentAddress
+      ? { EthSign: metamask_sign(agentAddress, undefined, agentKey) }
+      : {},
   });
 
   identityManager = new AgentIdentityManager(t3n);
 
   await t3n.handshake();
-  await t3n.authenticate(createEthAuthInput("0x1111111111111111111111111111111111111111"));
+  // Authenticate as the agent's own DID. Without AGENT_KEY this runs in demo
+  // mode against a mocked/sandbox transport (the EthSign challenge is not signed).
+  await t3n.authenticate(
+    createEthAuthInput(agentAddress || "0x1111111111111111111111111111111111111111"),
+  );
   await identityManager.setupAgentIdentity();
 
-  console.log("[Boot] Real T3N Agent bootstrapped & connected to live network.");
+  console.log(
+    agentAddress
+      ? `[Boot] Proofly agent authenticated to T3N as ${agentAddress}.`
+      : "[Boot] Proofly agent bootstrapped in demo mode (set AGENT_KEY for live auth).",
+  );
 }
 
 // REST Endpoints

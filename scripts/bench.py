@@ -5,7 +5,7 @@ import math
 import sys
 
 def main():
-    print("Running 200 policy evaluations in TEE...")
+    print("Running 200 in-process policy evaluations (not a live-enclave round-trip)...")
     
     # Run the Node benchmark runner
     try:
@@ -60,10 +60,10 @@ def main():
     print("\n## Benchmark Results (200 Evals)")
     print("| Metric | Latency (ms) | Description |")
     print("|---|---|---|")
-    print(f"| **Mean** | {mean:.6f} ms | Average latency of enclave evaluation |")
-    print(f"| **p50 (Median)** | {p50:.6f} ms | 50% of requests are faster than this |")
-    print(f"| **p95** | {p95:.6f} ms | 95% of requests are faster than this |")
-    print("\nMethodology: 200 cycles of handshake -> auth -> seed profile -> create policy -> policy evaluation + SD-JWT signing + OID4VP presentation packaging inside simulated TDX Wasmtime enclave.")
+    print(f"| **Mean** | {mean:.6f} ms | Average in-process policy-evaluation time |")
+    print(f"| **p50 (Median)** | {p50:.6f} ms | 50% of evaluations are faster than this |")
+    print(f"| **p95** | {p95:.6f} ms | 95% of evaluations are faster than this |")
+    print("\nMethodology: 200 iterations of the AND-composed policy-evaluation step (claim comparison) measured in-process, mirroring contract/src/lib.rs:verify_policy. This is NOT a live T3N enclave round-trip (handshake + encrypted channel + Wasmtime + SD-JWT/VP), which is network-bound and reported separately.")
 
 if __name__ == "__main__":
     main()

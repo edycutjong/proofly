@@ -89,9 +89,14 @@ export default function Home() {
     try {
       const res = await fetch("/api/policies");
       const data = await res.json();
-      setPolicies(data);
-      if (data.length > 0 && !selectedPolicyId) {
-        setSelectedPolicyId(data[0].id);
+      if (Array.isArray(data)) {
+        setPolicies(data);
+        if (data.length > 0 && !selectedPolicyId) {
+          setSelectedPolicyId(data[0].id);
+        }
+      } else {
+        setPolicies([]);
+        console.error("API returned non-array for policies:", data);
       }
     } catch (err) {
       console.error("Error fetching policies:", err);

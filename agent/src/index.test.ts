@@ -1,13 +1,15 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import { app, bootstrapAgent, localPolicies, localAudits } from "./index";
-import { T3nClient, loadWasmComponent } from "@terminal3/t3n-sdk";
+import { T3nClient, loadWasmComponent, metamask_sign, eth_get_address } from "@terminal3/t3n-sdk";
 import { AgentAuthChecker } from "./authz";
 
 vi.mock("@terminal3/t3n-sdk", () => ({
   T3nClient: vi.fn(),
   loadWasmComponent: vi.fn().mockResolvedValue({}),
-  createEthAuthInput: vi.fn().mockReturnValue({})
+  createEthAuthInput: vi.fn().mockReturnValue({}),
+  metamask_sign: vi.fn().mockReturnValue(vi.fn()),
+  eth_get_address: vi.fn().mockReturnValue("0xagent")
 }));
 
 vi.mock("./authz", () => ({
@@ -45,7 +47,33 @@ describe("Proofly Agent Server", () => {
       });
 
       await bootstrapAgent();
-      
+
+      expect(mockHandshake).toHaveBeenCalled();
+      expect(mockAuthenticate).toHaveBeenCalled();
+    });
+
+    it("should bootstrap with live EthSign auth when AGENT_KEY is set", async () => {
+      const mockHandshake = vi.fn().mockResolvedValue(true);
+      const mockAuthenticate = vi.fn().mockResolvedValue(true);
+
+      (T3nClient as any).mockImplementation(function () {
+        return {
+          handshake: mockHandshake,
+          authenticate: mockAuthenticate
+        };
+      });
+
+      const prev = process.env.AGENT_KEY;
+      process.env.AGENT_KEY = "0xdeadbeef";
+      try {
+        await bootstrapAgent();
+      } finally {
+        if (prev === undefined) delete process.env.AGENT_KEY;
+        else process.env.AGENT_KEY = prev;
+      }
+
+      expect(eth_get_address).toHaveBeenCalledWith("0xdeadbeef");
+      expect(metamask_sign).toHaveBeenCalled();
       expect(mockHandshake).toHaveBeenCalled();
       expect(mockAuthenticate).toHaveBeenCalled();
     });

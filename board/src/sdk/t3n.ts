@@ -1,4 +1,10 @@
-import { T3nClient, loadWasmComponent } from '@terminal3/t3n-sdk';
+import {
+  T3nClient,
+  loadWasmComponent,
+  metamask_sign,
+  eth_get_address,
+  createEthAuthInput,
+} from '@terminal3/t3n-sdk';
 
 export interface ClaimReq {
   claim: string;
@@ -32,13 +38,26 @@ export async function getT3nClient(): Promise<T3nClient> {
 
   const wasmComponent = await loadWasmComponent();
 
+  // T3N auth is a signed handshake challenge via the EthSign handler — not a
+  // bearer token. The agent key is server-side only (never NEXT_PUBLIC_*).
+  const agentKey = process.env.AGENT_KEY;
+  const agentAddress = agentKey ? eth_get_address(agentKey) : undefined;
+
   _client = new T3nClient({
-    baseUrl: "https://api.terminal3.io",
+    baseUrl: process.env.T3N_BASE_URL || "https://api.terminal3.io",
     wasmComponent,
-    headers: {
-      "Authorization": `Bearer ${process.env.NEXT_PUBLIC_T3N_BEARER_TOKEN || "0xREDACTED_TESTNET_KEY"}`
-    }
+    handlers: agentAddress
+      ? { EthSign: metamask_sign(agentAddress, undefined, agentKey) }
+      : {},
   });
+
+  // Open the encrypted channel and authenticate before any contract call.
+  // Only when a key is configured — without one we return an unauthenticated
+  // client for demo/test transports (the seed/verify routes mock the SDK).
+  if (agentAddress) {
+    await _client.handshake();
+    await _client.authenticate(createEthAuthInput(agentAddress));
+  }
 
   return _client;
 }
