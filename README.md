@@ -28,6 +28,19 @@
   <img src="board/public/og-image.png" alt="Proofly Board UI" width="100%">
 </div>
 
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img width="600" height="338" alt="personal-data-maya-1" src="https://github.com/user-attachments/assets/53730c03-e2e1-4861-97b8-e14f1a4c6219" />
+      <br/><sub><b>✅ Maya — Lisbon</b> · passes <code>adult-eu-nosanction</code> → disclosed <code>{ result: true }</code></sub>
+    </td>
+    <td align="center" width="50%">
+      <img width="600" height="338" alt="personal-data-dmitri-1" src="https://github.com/user-attachments/assets/9261f01b-c67f-498c-a2b1-834eb6a038f3" />
+      <br/><sub><b>❌ Dmitri — sanctioned</b> · fails with reason → <code>{ result: false }</code></sub>
+    </td>
+  </tr>
+</table>
+
 > **The Flow:** Verifier requests a compliance proof (e.g. `over_18 ∧ country ∈ EU ∧ not_sanctioned`) ➔ Proofly loads user's sealed SD-JWT credentials inside the TEE ➔ evaluates policy criteria on plaintext inside isolated memory ➔ issues an SD-JWT selectively disclosing only the boolean result ➔ packages the credential into an OID4VP Verifiable Presentation (`vp`).
 
 ---
