@@ -2,6 +2,40 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Compliance Verification Flow", () => {
   test.beforeEach(async ({ page }) => {
+    // Intercept network requests to /api/verify so tests don't require actual TEE profile seeding
+    await page.route("**/api/verify", async (route) => {
+      const request = route.request();
+      const postData = JSON.parse(request.postData() || "{}");
+      
+      if (postData.userDid === "did:t3n:dmitri_moscow_31") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            vp: "mock-vp-token-dmitri",
+            disclosed: {
+              result: false,
+              reason: "sanctioned does not match policy value no"
+            },
+            ts: Math.floor(Date.now() / 1000)
+          })
+        });
+      } else {
+        // Default (Maya) succeeds
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            vp: "mock-vp-token-maya",
+            disclosed: {
+              result: true
+            },
+            ts: Math.floor(Date.now() / 1000)
+          })
+        });
+      }
+    });
+
     await page.goto("/");
   });
 

@@ -33,6 +33,7 @@ Thumbs.db
 
 # Lighthouse CI
 /board/.lighthouseci/
+
 # Agent
 /agent/coverage/
 /agent/.pytest_cache/

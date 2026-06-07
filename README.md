@@ -1,11 +1,13 @@
 <div align="center">
-  <h1>Proofly 🛡️</h1>
+  <img src="board/public/icon.svg" alt="Proofly" width="120" height="120">
+
+  <h1>Proofly 🧾</h1>
   <p><em>Prove it, don't reveal it — TEE-secured zero-knowledge privacy verification agent.</em></p>
   <img src="docs/readme-hero.png" alt="Proofly Banner" width="100%">
 
   <br/>
 
-  [![Live Demo](https://img.shields.io/badge/🚀_Live-Demo-06b6d4?style=for-the-badge)](https://proofly.vercel.app)
+  [![Live Demo](https://img.shields.io/badge/🚀_Live-Demo-06b6d4?style=for-the-badge)](https://proofly.edycu.dev)
   [![Pitch Video](https://img.shields.io/badge/🎬_Pitch-Video-ef4444?style=for-the-badge)](https://youtu.be/proofly-demo)
   [![Built for DoraHacks](https://img.shields.io/badge/DoraHacks-T3_ADK_Bounty_Challenge-8b5cf6?style=for-the-badge)](https://dorahacks.io/hackathon/t3adkdevchallengebeta)
 
@@ -15,7 +17,7 @@
   ![Rust](https://img.shields.io/badge/Rust_WASM-DEA584?style=flat&logo=rust&logoColor=white)
   ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
   ![Tailwind](https://img.shields.io/badge/Tailwind_v4-38B2AC?style=flat&logo=tailwindcss&logoColor=white)
-  [![CI/CD Pipeline](https://github.com/edycutjong/dorahacks-t3adk-proofly/actions/workflows/ci.yml/badge.svg)](https://github.com/edycutjong/dorahacks-t3adk-proofly/actions/workflows/ci.yml)
+  [![CI/CD Pipeline](https://github.com/edycutjong/proofly/actions/workflows/ci.yml/badge.svg)](https://github.com/edycutjong/proofly/actions/workflows/ci.yml)
 </div>
 
 ---
@@ -23,7 +25,7 @@
 ## 🎬 See it in Action
 
 <div align="center">
-  <img src="docs/readme.png" alt="Proofly Board UI" width="100%">
+  <img src="board/public/og-image.png" alt="Proofly Board UI" width="100%">
 </div>
 
 > **The Flow:** Verifier requests a compliance proof (e.g. `over_18 ∧ country ∈ EU ∧ not_sanctioned`) ➔ Proofly loads user's sealed SD-JWT credentials inside the TEE ➔ evaluates policy criteria on plaintext inside isolated memory ➔ issues an SD-JWT selectively disclosing only the boolean result ➔ packages the credential into an OID4VP Verifiable Presentation (`vp`).

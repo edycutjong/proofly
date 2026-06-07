@@ -208,7 +208,7 @@ fn verify_policy(input_json: &str) -> Result<String, String> {
     let vp = host::build_vp(&sd_jwt, &presentation_def)
         .map_err(|e| format!("VP packaging error: {}", e))?;
 
-    let ts = params.ts.unwrap_or_else(|| 1717545600); // Default or provided timestamp
+    let ts = params.ts.unwrap_or(1717545600); // Default or provided timestamp
     let verifier = params.verifier_did.unwrap_or_else(|| "did:t3n:unknown_verifier".to_string());
 
     // Record the audit entry in KV store
