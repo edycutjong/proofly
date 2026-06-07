@@ -2,6 +2,9 @@
   "name": "proofly-agent",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
