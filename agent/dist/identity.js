@@ -8,25 +8,12 @@ class AgentIdentityManager {
         this.client = client;
     }
     /**
-     * Simulates provisioning the Proofly did:t3n in did-registry
-     * and publishing the agent URI in agent-registry.
+     * Assumes the identity is provisioned out-of-band for the demo or
+     * uses the live T3N infrastructure.
      */
     async setupAgentIdentity() {
-        console.log(`[Identity] Registering agent identity: ${this.agentDid}`);
-        // Simulate did-registry call
-        const regResult = await this.client.contracts.register({
-            tail: "did-registry",
-            version: "1.0.0",
-            wasm: null
-        });
-        console.log(`[Identity] Registered DID in did-registry: ${regResult.script_name}`);
-        // Simulate agent-registry URI publish
-        const publishResult = await this.client.contracts.register({
-            tail: "agent-registry",
-            version: "1.0.0",
-            wasm: null
-        });
-        console.log(`[Identity] Published agent URI "t3n://agents/proofly-verifier" in agent-registry`);
+        console.log(`[Identity] Using registered agent identity: ${this.agentDid}`);
+        console.log(`[Identity] Ready to accept proofs.`);
         return {
             agentDid: this.agentDid,
             success: true

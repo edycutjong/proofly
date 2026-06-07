@@ -3,60 +3,40 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.localAudits = exports.localPolicies = exports.app = void 0;
+exports.bootstrapAgent = bootstrapAgent;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const T3nClient_1 = require("./T3nClient");
+const t3n_sdk_1 = require("@terminal3/t3n-sdk");
 const identity_1 = require("./identity");
 const authz_1 = require("./authz");
 const app = (0, express_1.default)();
+exports.app = app;
 const port = process.env.PORT || 3001;
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
-// Initialize persistent T3N TEE Client session
-const t3n = new T3nClient_1.T3nClient();
-const identityManager = new identity_1.AgentIdentityManager(t3n);
+let t3n;
+let identityManager;
+// Store created policies locally since TEE KV store doesn't support wildcards/listing natively yet
+const localPolicies = [];
+exports.localPolicies = localPolicies;
+const localAudits = [];
+exports.localAudits = localAudits;
 // Seed personas & default policies in TEE KV store
 async function bootstrapAgent() {
-    await t3n.handshake();
-    await t3n.authenticate((0, T3nClient_1.createEthAuthInput)("0x1111111111111111111111111111111111111111"));
-    await identityManager.setupAgentIdentity();
-    // Seed default personas
-    T3nClient_1.T3nClient.seedProfile("did:t3n:maya_lisbon_24", {
-        age: 24,
-        country: "PT",
-        kyc: "valid",
-        sanctioned: "no",
-        accredited: false
-    });
-    T3nClient_1.T3nClient.seedProfile("did:t3n:dmitri_moscow_31", {
-        age: 31,
-        country: "RU",
-        kyc: "valid",
-        sanctioned: "yes",
-        accredited: false
-    });
-    T3nClient_1.T3nClient.seedProfile("did:t3n:leo_berlin_16", {
-        age: 16,
-        country: "DE",
-        kyc: "valid",
-        sanctioned: "no",
-        accredited: false
-    });
-    // Seed default policies
-    await t3n.executeAndDecode({
-        script_name: "z:tenant:proofly",
-        script_version: "1.0.0",
-        function_name: "create-policy",
-        input: {
-            id: "adult-eu-nosanction",
-            require: [
-                { claim: "age", op: ">=", value: 18 },
-                { claim: "country", op: "in", value: "EU" },
-                { claim: "sanctioned", op: "==", value: "no" }
-            ]
+    const wasmComponent = await (0, t3n_sdk_1.loadWasmComponent)();
+    t3n = new t3n_sdk_1.T3nClient({
+        baseUrl: "https://api.terminal3.io",
+        wasmComponent,
+        headers: {
+            "Authorization": `Bearer ${process.env.T3N_BEARER_TOKEN || "0xREDACTED_TESTNET_KEY"}`
         }
     });
-    console.log("[Boot] Standalone Proofly Agent bootstrapped & default scenarios seeded.");
+    identityManager = new identity_1.AgentIdentityManager(t3n);
+    await t3n.handshake();
+    await t3n.authenticate((0, t3n_sdk_1.createEthAuthInput)("0x1111111111111111111111111111111111111111"));
+    await identityManager.setupAgentIdentity();
+    console.log("[Boot] Real T3N Agent bootstrapped & connected to live network.");
 }
 // REST Endpoints
 app.post("/verify", async (req, res) => {
@@ -75,6 +55,13 @@ app.post("/verify", async (req, res) => {
                 ts: Math.floor(Date.now() / 1000)
             }
         });
+        localAudits.push({
+            verifier: verifierDid,
+            userDid,
+            policyId,
+            disclosed: ["result"],
+            ts: Math.floor(Date.now() / 1000)
+        });
         res.json(presentation);
     }
     catch (error) {
@@ -91,6 +78,7 @@ app.post("/policies", async (req, res) => {
             function_name: "create-policy",
             input: policy
         });
+        localPolicies.push(policy);
         res.json(created);
     }
     catch (error) {
@@ -99,12 +87,7 @@ app.post("/policies", async (req, res) => {
 });
 app.get("/policies", (req, res) => {
     try {
-        const policies = [
-            T3nClient_1.T3nClient.getPolicy("adult-eu-nosanction"),
-            T3nClient_1.T3nClient.getPolicy("accredited-us"),
-            T3nClient_1.T3nClient.getPolicy("age-gate-18")
-        ].filter(Boolean);
-        res.json(policies);
+        res.json(localPolicies);
     }
     catch (error) {
         res.status(500).json({ error: error.message });
@@ -113,7 +96,7 @@ app.get("/policies", (req, res) => {
 app.get("/audit", (req, res) => {
     try {
         const verifier = req.query.verifier || undefined;
-        const audits = T3nClient_1.T3nClient.getAudits(verifier);
+        const audits = verifier ? localAudits.filter(a => a.verifier === verifier) : localAudits;
         res.json(audits);
     }
     catch (error) {
@@ -122,13 +105,16 @@ app.get("/audit", (req, res) => {
 });
 app.get("/health", (req, res) => {
     res.json({
-        agentDid: identityManager.getAgentDid(),
+        agentDid: identityManager?.getAgentDid() || "unknown",
         registry: "ok",
         status: "healthy",
         uptime: process.uptime()
     });
 });
-app.listen(port, async () => {
-    await bootstrapAgent();
-    console.log(`🚀 Proofly Agent backend service running at http://localhost:${port}`);
-});
+/* v8 ignore next 6 */
+if (require.main === module) {
+    app.listen(port, async () => {
+        await bootstrapAgent();
+        console.log(`🚀 Proofly Agent backend service running at http://localhost:${port}`);
+    });
+}
