@@ -2,7 +2,7 @@
 
 ## Live URL
 - **Portal + demo:** Vercel — `proofly.edycu.dev` (Next.js).
-- **Agent service:** Fly.io / Railway — `agent.proofly.app` (Node, holds the T3nClient session).
+- **Agent service:** Fly.io / Railway — `agent.proofly.edycu.dev` (Node, holds the T3nClient session).
 
 ## Identity / registry proof
 - Proofly's `did:t3n` registered via **`did-registry`** and published via **`agent-registry`** — include the DID + any on-chain link so a judge can resolve the agent independently.

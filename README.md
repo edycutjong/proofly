@@ -10,6 +10,7 @@
   [![Live Demo](https://img.shields.io/badge/🚀_Live-Demo-06b6d4?style=for-the-badge)](https://proofly.edycu.dev)
   [![Pitch Video](https://img.shields.io/badge/🎬_Pitch-Video-ef4444?style=for-the-badge)](https://youtu.be/-SULZJ0C7oI)
   [![Built for DoraHacks](https://img.shields.io/badge/DoraHacks-T3_ADK_Bounty_Challenge-8b5cf6?style=for-the-badge)](https://dorahacks.io/hackathon/t3adkdevchallengebeta)
+  [![BUIDL](https://img.shields.io/badge/DoraHacks-BUIDL_%2344358-22c55e?style=for-the-badge)](https://dorahacks.io/buidl/44358)
 
   <br/>
 
